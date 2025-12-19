@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model SiteSettings {
+  id          Int      @id @default(1) // Singleton
+  siteName    String   @default("BONBURL")
+  whatsapp    String?
+  facebook    String?
+  instagram   String?
+  tiktok      String?
+  shopee      String?
+  email       String?
+  phone       String?
+  address     String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id          String   @id @default(uuid())
+  title       String?
+  subtitle    String?  // Added for carousel text
+  imageUrl    String   // PC version
+  mobileImageUrl String? // Mobile version (optional)
+  link        String?
+  linkText    String?  @default("Discover Collection")
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentBlock {
+  id          String   @id @default(uuid())
+  slug        String   @unique // e.g., 'home-campaign', 'home-craftsmanship'
+  name        String   // Internal name for admin
+  title       String?
+  subtitle    String?
+  description String?
+  imageUrl    String?
+  mobileImageUrl String?
+  link        String?
+  linkText    String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       String?  // Display price (e.g. "Rp 1.000.000")
+  category    String   // "Handbag", "Backpack", etc.
+  isNew       Boolean  @default(false)
+  isBestSeller Boolean @default(false)
+  order       Int      @default(0)
+  purchaseLink String? // External link to Shopee/TikTok
+  
+  images      ProductImage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  url       String
+  isMain    Boolean @default(false)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String   // Hashed or simple for this scale
+  createdAt DateTime @default(now())
+}
+
+model Visit {
+  id        String   @id @default(uuid())
+  path      String
+  ip        String?
+  city      String?
+  country   String?
+  device    String?  // 'mobile', 'desktop', etc.
+  userAgent String?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
