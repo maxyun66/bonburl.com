@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     // Since Vercel has limits on request body size, for larger files client-side upload is better.
     // But for simplicity in Admin dashboard, we try server-side upload here.
     
-    return new Promise((resolve, reject) => {
+    return new Promise<NextResponse>((resolve, reject) => {
         cloudinary.uploader.upload_stream(
             { 
                 folder: "bonburl", // Optional: organize in a folder
