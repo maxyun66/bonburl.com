@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 export function AnalyticsTracker() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     // We wait a bit to ensure it's not a bounce or rapid navigation? No, just track.
@@ -17,6 +18,7 @@ export function AnalyticsTracker() {
             path: pathname,
             userAgent: navigator.userAgent,
             referrer: document.referrer,
+            search: searchParams.toString(),
           }),
         })
       } catch (e) {
@@ -25,7 +27,7 @@ export function AnalyticsTracker() {
     }
 
     track()
-  }, [pathname])
+  }, [pathname, searchParams])
 
   return null
 }

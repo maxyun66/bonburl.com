@@ -93,6 +93,10 @@ model Visit {
   country   String?
   device    String?  // 'mobile', 'desktop', etc.
   userAgent String?
+  referrer  String?
+  source    String?  // 'Google', 'Direct', 'QR Code', etc.
+  utmSource String?
+  utmMedium String?
   createdAt DateTime @default(now())
 }
 
