@@ -3,8 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { writeFile } from 'fs/promises'
-import path from 'path'
+import { saveFile } from '@/lib/file-storage'
 
 export async function updateContentBlockAction(formData: FormData) {
   const id = formData.get('id') as string
@@ -20,31 +19,11 @@ export async function updateContentBlockAction(formData: FormData) {
   let mobileImageUrl: string | undefined
 
   if (image && image.size > 0) {
-    const buffer = Buffer.from(await image.arrayBuffer())
-    const filename = `${Date.now()}-pc-${image.name.replaceAll(' ', '_')}`
-    
-    // Ensure public/uploads exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    try {
-      await require('fs').promises.mkdir(uploadDir, { recursive: true })
-    } catch (e) {}
-
-    await writeFile(path.join(uploadDir, filename), buffer)
-    imageUrl = `/uploads/${filename}`
+    imageUrl = await saveFile(image)
   }
 
   if (mobileImage && mobileImage.size > 0) {
-    const buffer = Buffer.from(await mobileImage.arrayBuffer())
-    const filename = `${Date.now()}-mobile-${mobileImage.name.replaceAll(' ', '_')}`
-    
-    // Ensure public/uploads exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    try {
-      await require('fs').promises.mkdir(uploadDir, { recursive: true })
-    } catch (e) {}
-
-    await writeFile(path.join(uploadDir, filename), buffer)
-    mobileImageUrl = `/uploads/${filename}`
+    mobileImageUrl = await saveFile(mobileImage)
   }
 
   await prisma.contentBlock.update({

@@ -4,6 +4,23 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Start seeding...')
 
+  // 0. Seed Admin User
+  const existingAdmin = await prisma.adminUser.findUnique({
+    where: { username: 'admin' }
+  })
+
+  if (!existingAdmin) {
+    await prisma.adminUser.create({
+      data: {
+        username: 'admin',
+        password: 'admin123', // In a real app, use bcrypt to hash this!
+      }
+    })
+    console.log('Admin user created: admin / admin123')
+  } else {
+    console.log('Admin user already exists.')
+  }
+
   // 1. Clear existing data
   await prisma.productImage.deleteMany()
   await prisma.product.deleteMany()
