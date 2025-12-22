@@ -20,10 +20,12 @@ export async function updateContentBlockAction(prevState: any, formData: FormDat
 
   try {
     if (image && image.size > 0) {
+      console.log('Uploading PC image for content block...')
       imageUrl = await saveFile(image)
     }
 
     if (mobileImage && mobileImage.size > 0) {
+      console.log('Uploading Mobile image for content block...')
       mobileImageUrl = await saveFile(mobileImage)
     }
 
