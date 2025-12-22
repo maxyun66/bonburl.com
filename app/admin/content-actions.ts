@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { saveFile } from '@/lib/file-storage'
 
-export async function updateContentBlockAction(formData: FormData) {
+export async function updateContentBlockAction(prevState: any, formData: FormData) {
   const id = formData.get('id') as string
   const title = formData.get('title') as string
   const subtitle = formData.get('subtitle') as string
@@ -18,26 +18,31 @@ export async function updateContentBlockAction(formData: FormData) {
   let imageUrl: string | undefined
   let mobileImageUrl: string | undefined
 
-  if (image && image.size > 0) {
-    imageUrl = await saveFile(image)
-  }
+  try {
+    if (image && image.size > 0) {
+      imageUrl = await saveFile(image)
+    }
 
-  if (mobileImage && mobileImage.size > 0) {
-    mobileImageUrl = await saveFile(mobileImage)
-  }
+    if (mobileImage && mobileImage.size > 0) {
+      mobileImageUrl = await saveFile(mobileImage)
+    }
 
-  await prisma.contentBlock.update({
-    where: { id },
-    data: {
-      title,
-      subtitle,
-      description,
-      link,
-      linkText,
-      ...(imageUrl && { imageUrl }),
-      ...(mobileImageUrl && { mobileImageUrl }),
-    },
-  })
+    await prisma.contentBlock.update({
+      where: { id },
+      data: {
+        title,
+        subtitle,
+        description,
+        link,
+        linkText,
+        ...(imageUrl && { imageUrl }),
+        ...(mobileImageUrl && { mobileImageUrl }),
+      },
+    })
+  } catch (error) {
+    console.error('Update content block error:', error)
+    return { error: '更新失败: ' + (error instanceof Error ? error.message : '未知错误') }
+  }
 
   revalidatePath('/')
   revalidatePath('/admin/dashboard/content')
