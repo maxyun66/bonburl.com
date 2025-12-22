@@ -12,23 +12,11 @@ export async function updateContentBlockAction(prevState: any, formData: FormDat
   const description = formData.get('description') as string
   const link = formData.get('link') as string
   const linkText = formData.get('linkText') as string
-  const image = formData.get('image') as File
-  const mobileImage = formData.get('mobileImage') as File
-
-  let imageUrl: string | undefined
-  let mobileImageUrl: string | undefined
+  // Images are uploaded client-side and passed as URLs
+  const imageUrl = formData.get('imageUrl') as string
+  const mobileImageUrl = formData.get('mobileImageUrl') as string
 
   try {
-    if (image && image.size > 0) {
-      console.log('Uploading PC image for content block...')
-      imageUrl = await saveFile(image)
-    }
-
-    if (mobileImage && mobileImage.size > 0) {
-      console.log('Uploading Mobile image for content block...')
-      mobileImageUrl = await saveFile(mobileImage)
-    }
-
     await prisma.contentBlock.update({
       where: { id },
       data: {

@@ -9,16 +9,14 @@ cloudinary.config({
 })
 
 export async function saveFile(file: File): Promise<string> {
-  const buffer = Buffer.from(await file.arrayBuffer())
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
 
   // Check if Cloudinary credentials are provided
   if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 
       !process.env.CLOUDINARY_API_KEY || 
       !process.env.CLOUDINARY_API_SECRET) {
     console.warn('Cloudinary environment variables are missing. Falling back to mock URL (images won\'t persist in production).')
-    // In production without Cloudinary, this will still fail eventually if we try to display it, 
-    // but at least it won't crash the upload action immediately.
-    // However, for Vercel deployment, we MUST have Cloudinary configured.
     throw new Error('Cloudinary environment variables are missing. Please configure NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in Vercel settings.')
   }
 
@@ -42,4 +40,17 @@ export async function saveFile(file: File): Promise<string> {
       }
     ).end(buffer)
   })
+}
+
+// Generate signature for client-side upload
+export function getSignature() {
+  const timestamp = Math.round(new Date().getTime() / 1000)
+  const signature = cloudinary.utils.api_sign_request(
+    {
+      timestamp,
+      folder: 'bonburl',
+    },
+    process.env.CLOUDINARY_API_SECRET!
+  )
+  return { timestamp, signature }
 }

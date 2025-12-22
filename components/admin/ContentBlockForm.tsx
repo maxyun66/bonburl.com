@@ -5,8 +5,9 @@ import { updateContentBlockAction } from '@/app/admin/content-actions'
 import { Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { uploadToCloudinary } from '@/lib/client-upload'
 
 interface ContentBlockFormProps {
   block: any // Prisma type
@@ -14,12 +15,44 @@ interface ContentBlockFormProps {
 
 export function ContentBlockForm({ block }: ContentBlockFormProps) {
   const [state, action, isPending] = useActionState(updateContentBlockAction, null)
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     if (state?.error) {
       toast.error(state.error)
     }
   }, [state])
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsUploading(true)
+    const formData = new FormData(event.currentTarget)
+
+    try {
+      // Upload PC Image if selected
+      const imageFile = formData.get('image') as File
+      if (imageFile && imageFile.size > 0) {
+        const url = await uploadToCloudinary(imageFile)
+        formData.set('imageUrl', url)
+      }
+      formData.delete('image') // Remove file to avoid server upload
+
+      // Upload Mobile Image if selected
+      const mobileImageFile = formData.get('mobileImage') as File
+      if (mobileImageFile && mobileImageFile.size > 0) {
+        const url = await uploadToCloudinary(mobileImageFile)
+        formData.set('mobileImageUrl', url)
+      }
+      formData.delete('mobileImage') // Remove file to avoid server upload
+
+      // Submit to server action
+      const result = await action(formData)
+    } catch (error) {
+      toast.error('图片上传失败: ' + (error instanceof Error ? error.message : '未知错误'))
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -33,7 +66,7 @@ export function ContentBlockForm({ block }: ContentBlockFormProps) {
         <h1 className="text-2xl font-bold text-gray-900">编辑: {block.name}</h1>
       </div>
 
-      <form action={action} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
         <input type="hidden" name="id" value={block.id} />
 
         <div className="space-y-2">
@@ -138,11 +171,11 @@ export function ContentBlockForm({ block }: ContentBlockFormProps) {
         <div className="pt-4 border-t">
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isPending || isUploading}
             className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Save size={18} />
-            {isPending ? '保存中...' : '保存修改'}
+            {isPending || isUploading ? '保存中...' : '保存修改'}
           </button>
         </div>
       </form>
